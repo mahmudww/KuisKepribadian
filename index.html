@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <!-- STREAMING_CHUNK:Configuring head metadata and ChartJS... -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Kompas Temperamen Kepribadian</title>
+    <!-- Memanggil Chart.js untuk Grafik Radar -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- STREAMING_CHUNK:Styling layout with modern CSS tokens... -->
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            box-sizing: border-box;
+        }
+        h1 { text-align: center; font-size: 26px; color: var(--primary); margin-top: 0; }
+        .description { text-align: center; color: #475569; margin-bottom: 30px; font-size: 15px; }
+        .question-card { display: none; }
+        .question-card.active { display: block; }
+        .progress-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .question-text { font-size: 18px; font-weight: 600; margin-bottom: 20px; line-height: 1.5; }
+        .options { display: flex; flex-direction: column; gap: 12px; }
+        .option-btn {
+            padding: 14px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            line-height: 1.4;
+        }
+        .option-btn:hover {
+            border-color: var(--primary);
+            background: #e0e7ff;
+            transform: translateY(-1px);
+        }
+        .result-title { font-size: 24px; font-weight: bold; text-align: center; color: var(--primary); margin-bottom: 20px; }
+        .chart-container { position: relative; margin: 0 auto 30px auto; height: 300px; width: 100%; }
+        .interpretation { margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px; }
+        .temperament-section { margin-bottom: 25px; display: none; }
+        .temperament-section h3 { margin-bottom: 8px; font-size: 18px; }
+        p { font-size: 14px; color: #334155; line-height: 1.6; }
+        
+        /* Tombol Coba Lagi */
+        .reset-btn {
+            display: block;
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s ease;
+            margin-top: 30px;
+        }
+        .reset-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        .reset-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+<!-- STREAMING_CHUNK:Building DOM containers for screens... -->
+<div class="container">
+    <div id="quiz-screen">
+        <h1>Kuis Kompas Kepribadian</h1>
+        <p class="description">Berbasis Teori Empat Temperamen Hipokratis. Pilihlah respon spontan yang paling mencerminkan diri Anda sehari-hari.</p>
+        <div class="progress-bar"><div class="progress" id="progress"></div></div>
+        <div id="questions-container"></div>
+    </div>
+
+    <div id="result-screen" style="display: none;">
+        <div class="result-title">Grafik Radar Kekuatan Anda</div>
+        
+        <!-- CANVAS UNTUK RADAR CHART -->
+        <div class="chart-container">
+            <canvas id="radarChart"></canvas>
+        </div>
+
+        <div class="interpretation">
+            <div class="result-title" style="font-size: 20px; text-align: left;">Panduan Analisis Karakter & Karier</div>
+            <p>Berikut adalah penjelasan detail dari dominasi tipe kepribadian Anda berdasarkan hasil tes di atas:</p>
+            
+            <!-- STREAMING_CHUNK:Structuring detailed analysis cards... -->
+            <!-- DETAIL SANGUINIS -->
+            <div id="info-sanguinis" class="temperament-section">
+                <h3 style="color: #ea580c;">🔥 Sanguinis (Si Populer & Ekspresif)</h3>
+                <p><strong>Karakter Umum:</strong> Orang yang ceria, optimis, antusias, dan sangat menyukai interaksi sosial. Anda adalah penghidup suasana yang hebat, komunikatif, dan penuh energi kreatif, meski kadang cenderung impulsif, kurang teratur, dan mudah bosan.</p>
+                <p><strong>Gaya Pemimpin:</strong> Pemimpin yang karismatik dan transformasional. Mampu menginspirasi, memotivasi, dan membangun kedekatan emosional dengan tim lewat komunikasi yang persuasif. Namun, perlu didampingi asisten yang disiplin pada detail operasional.</p>
+                <p><strong>Rekomendasi Karier:</strong> Sangat cocok di bidang kreatif, komunikasi, dan relasi, seperti: <em>Social Media Specialist</em>, Content Creator, Public Relations, Sales/Marketing, Dunia Hiburan, Event Organizer, atau Penyiar.</p>
+            </div>
+
+            <!-- DETAIL KOLERIS -->
+            <div id="info-koleris" class="temperament-section">
+                <h3 style="color: #dc2626;">⚡ Koleris (Si Pelaksana & Tegas)</h3>
+                <p><strong>Karakter Umum:</strong> Karakter yang mandiri, berkeinginan kuat, berorientasi pada target, dan penuh percaya diri. Anda adalah pemecah masalah (problem solver) yang cepat mengambil keputusan, namun berisiko terlihat dominan, bossy, atau kurang peka terhadap perasaan orang lain.</p>
+                <p><strong>Gaya Pemimpin:</strong> Pemimpin yang berorientasi pada hasil (Result-Oriented). Sangat tegas, berani mengambil risiko, mendelegasikan tugas dengan jelas, dan fokus pada efisiensi. Tantangannya adalah harus belajar lebih sabar mendengarkan masukan tim.</p>
+                <p><strong>Rekomendasi Karier:</strong> Sangat cocok di posisi strategis dan manajerial, seperti: Eksekutif/CEO, Manajer Proyek, Pengusaha (Entrepreneur), Konsultan Bisnis, Politik, atau bidang Militer/Penegak Hukum.</p>
+            </div>
+
+            <!-- DETAIL MELANKOLIS -->
+            <div id="info-melankolis" class="temperament-section">
+                <h3 style="color: #2563eb;">📐 Melankolis (Si Pemikir & Perfeksionis)</h3>
+                <p><strong>Karakter Umum:</strong> Pribadi yang analitis, teratur, mendalam, dan sangat memperhatikan detail. Anda menghargai struktur, kualitas, dan kebenaran data. Kelemahannya adalah rentan mengalami overthinking, terlalu kritis pada diri sendiri, dan takut membuat kesalahan.</p>
+                <p><strong>Gaya Pemimpin:</strong> Pemimpin yang terstruktur dan berbasis data (Sistematis). Memimpin dengan standar kualitas yang tinggi, perencanaan yang matang, dan akurasi tinggi. Perlu belajar untuk lebih fleksibel jika situasi di lapangan berubah mendadak.</p>
+                <p><strong>Rekomendasi Karier:</strong> Sangat cocok di bidang akurasi tinggi dan analisis mendalam, seperti: Psikolog/Konselor, Akuntan, Programmer/Software Engineer, Peneliti/Scientist, Editor, Data Analyst, atau Arsitek.</p>
+            </div>
+
+            <!-- DETAIL FLEGMATIS -->
+            <div id="info-flegmatis" class="temperament-section">
+                <h3 style="color: #16a34a;">🍃 Flegmatis (Si Damai & Diplomat)</h3>
+                <p><strong>Karakter Umum:</strong> Karakter yang tenang, santun, seimbang, dan cinta damai. Anda adalah pendengar yang luar biasa, mudah beradaptasi, dan pandai meredam konflik. Namun, Anda sering kali kesulitan berkata "tidak", kurang menyukai perubahan mendadak, dan cenderung pasif/menunda.</p>
+                <p><strong>Gaya Pemimpin:</strong> Pemimpin yang demokratis dan suportif (Servant Leader). Sangat mementingkan keharmonisan tim, kestabilan lingkungan kerja, dan kesejahteraan anggota kelompok. Tantangannya adalah harus melatih ketegasan saat mengambil keputusan sulit.</p>
+                <p><strong>Rekomendasi Karier:</strong> Sangat cocok di bidang pelayanan, mediasi, dan administrasi, seperti: HRD (Human Resources), Guru/Dosen, Layanan Pelanggan (Customer Support), Mediator/Diplomat, Administrator, atau Pekerja Sosial.</p>
+            </div>
+        </div>
+
+        <!-- TOMBOL COBA LAGI -->
+        <button class="reset-btn" onclick="resetQuiz()">Coba Kuis Lagi</button>
+    </div>
+</div>
+
+<script>
+    // STREAMING_CHUNK:Declaring scrambled psychological questions list...
+    // Susunan opsi di bawah ini sengaja diacak urutannya secara acak di setiap pertanyaan agar tidak ada pola tetap di database kode
+    const questions = [
+        { 
+            q: "Saat berbicara dengan orang lain, saya cenderung...", 
+            opts: [
+                { text: "Berpikir mendalam agar kalimat saya tepat dan akurat", type: "Melankolis" },
+                { text: "Langsung pada inti masalah (to the point) dan efisien", type: "Koleris" },
+                { text: "Banyak bercerita, ekspresif, dan menggunakan gerakan tangan", type: "Sanguinis" },
+                { text: "Mendengarkan dengan sabar tanpa berniat memotong", type: "Flegmatis" }
+            ] 
+        },
+        { 
+            q: "Ketika menghadapi konflik atau perdebatan, respon alami saya...", 
+            opts: [
+                { text: "Cenderung mengalah atau diam demi menjaga kedamaian situasi", type: "Flegmatis" },
+                { text: "Mencari lelucon atau mengalihkan obrolan untuk mencairkan suasana", type: "Sanguinis" },
+                { text: "Menghadapi langsung dan berargumen agar masalah selesai saat itu juga", type: "Koleris" },
+                { text: "Merasa tidak nyaman, menganalisis kesalahan, dan memikirkannya dalam-dalam", type: "Melankolis" }
+            ] 
+        },
+        { 
+            q: "Bagaimana cara Anda mengorganisasi tugas atau pekerjaan harian?", 
+            opts: [
+                { text: "Fokus pada hasil akhir, kecepatan, dan efisiensi waktu", type: "Koleris" },
+                { text: "Membuat rencana tertulis yang sangat detail, runtut, dan rapi", type: "Melankolis" },
+                { text: "Santai saja, mengalir mengikuti ritme yang sudah biasa dilakukan", type: "Flegmatis" },
+                { text: "Spontan, fleksibel, dan sangat dipengaruhi oleh suasana hati (mood)", type: "Sanguinis" }
+            ] 
+        },
+        { 
+            q: "Di sebuah acara sosial atau lingkungan baru, Anda biasanya...", 
+            opts: [
+                { text: "Duduk tenang menikmati suasana tanpa merasa harus banyak berinteraksi", type: "Flegmatis" },
+                { text: "Menjadi pusat perhatian, mudah akrab, dan mengobrol dengan banyak orang baru", type: "Sanguinis" },
+                { text: "Memilih mengamati situasi dari jauh atau mengobrol intim dengan 1-2 orang saja", type: "Melankolis" },
+                { text: "Mencari orang yang berpengaruh atau membicarakan hal produktif/bisnis", type: "Koleris" }
+            ] 
+        },
+        { 
+            q: "Kelemahan yang paling sering disoroti orang lain dari diri saya adalah...", 
+            opts: [
+                { text: "Terlalu sensitif (baperan), pemikir keras, dan menuntut kesempurnaan", type: "Melankolis" },
+                { text: "Kurang disiplin, suka lupa hal-hal kecil, dan kurang rapi", type: "Sanguinis" },
+                { text: "Suka menunda-nunda tugas dan kurang tegas mengambil sikap", type: "Flegmatis" },
+                { text: "Terlalu dominan, suka mengatur (bossy), dan kurang sabaran", type: "Koleris" }
+            ] 
+        },
+        { 
+            q: "Saat bekerja dalam sebuah tim, peran apa yang membuat Anda paling nyaman?", 
+            opts: [
+                { text: "Ketua atau pengambil keputusan utama yang mengarahkan pergerakan tim", type: "Koleris" },
+                { text: "Inspirator kreatif atau humas yang menyemangati atmosfer tim", type: "Sanguinis" },
+                { text: "Perencana strategi, pembuat sistem, atau pemeriksa kualitas data", type: "Melankolis" },
+                { text: "Bagian pendukung (support system) yang menjaga keharmonisan internal tim", type: "Flegmatis" }
+            ] 
+        },
+        { 
+            q: "Ketika menerima kritik yang cukup tajam, reaksi pertama saya adalah...", 
+            opts: [
+                { text: "Menerimanya dengan tenang tanpa bantahan luar, meskipun di dalam hati kecewa", type: "Flegmatis" },
+                { text: "Membela diri secara argumentatif dan menantang balik dasar kritik tersebut", type: "Koleris" },
+                { text: "Merasa sedih sejenak, namun cepat melupakannya beberapa jam kemudian", type: "Sanguinis" },
+                { text: "Memikirkannya berhari-hari, mengevaluasi diri, dan merasa bersalah", type: "Melankolis" }
+            ] 
+        },
+        { 
+            q: "Saat membeli barang dengan nilai yang cukup mahal, saya cenderung...", 
+            opts: [
+                { text: "Melakukan riset mendalam berhari-hari, membaca ulasan, dan membandingkan harga", type: "Melankolis" },
+                { text: "Membeli secara impulsif karena suka modelnya, gengsi, atau mumpung tren", type: "Sanguinis" },
+                { text: "Membeli barang yang standar dan biasa saya gunakan agar terasa aman", type: "Flegmatis" },
+                { text: "Membeli dengan cepat karena fungsinya terbukti menunjang produktivitas saya", type: "Koleris" }
+            ] 
+        },
+        { 
+            q: "Saya merasa paling puas, dihargai, dan bahagia jika...", 
+            opts: [
+                { text: "Berhasil mencapai target besar atau memenangkan sebuah kompetisi/tantangan", type: "Koleris" },
+                { text: "Kehidupan dan hubungan di sekitar saya berjalan tenang, aman, dan tanpa konflik", type: "Flegmatis" },
+                { text: "Disukai banyak orang, dipuji atas idenya, dan dilingkupi persahabatan", type: "Sanguinis" },
+                { text: "Pekerjaan atau karya saya selesai dengan sempurna tanpa cela sedikit pun", type: "Melankolis" }
+            ] 
+        },
+        { 
+            q: "Pernyataan mana yang paling menggambarkan energi harian Anda?", 
+            opts: [
+                { text: "Kalem, stabil, santai, dan hampir tidak pernah terlihat panik", type: "Flegmatis" },
+                { text: "Ambisius, dinamis, tegas, dan selalu ingin segera mengeksekusi sesuatu", type: "Koleris" },
+                { text: "Penuh semangat, ekspresif, ceria, namun energinya mudah naik-turun", type: "Sanguinis" },
+                { text: "Serius, penuh pertimbangan matang, tenang, dan sangat fokus", type: "Melankolis" }
+            ] 
+        },
+        { 
+            q: "Jika rencana penting yang sudah Anda susun tiba-tiba gagal total, Anda akan...", 
+            opts: [
+                { text: "Mencari hiburan atau pengalihan lain yang menyenangkan agar tidak stres", type: "Sanguinis" },
+                { text: "Kecewa mendalam dan sibuk menganalisis di mana letak persis kegagalannya", type: "Melankolis" },
+                { text: "Marah atau kesal sejenak, lalu langsung menyusun strategi baru untuk menang", type: "Koleris" },
+                { text: "Menerimanya dengan pasrah, tenang, dan menganggapnya belum rezeki", type: "Flegmatis" }
+            ] 
+        },
+        { 
+            q: "Gaya berpakaian atau penampilan Anda sehari-hari cenderung...", 
+            opts: [
+                { text: "Sederhana, mengutamakan kenyamanan bahan, dan tidak mencolok perhatian", type: "Flegmatis" },
+                { text: "Praktis, rapi, tegas, dan memberikan kesan berwibawa/profesional", type: "Koleris" },
+                { text: "Sangat rapi, serasi padu-padannya, dan memperhatikan detail terkecil", type: "Melankolis" },
+                { text: "Modis, berwarna cerah, atau sengaja mengikuti tren fashion terbaru", type: "Sanguinis" }
+            ] 
+        },
+        { 
+            q: "Ketika melihat teman dekat sedang menangis atau tertimpa masalah, saya...", 
+            opts: [
+                { text: "Menjadi pendengar yang setia, tenang, dan menemani di sampingnya dengan sabar", type: "Flegmatis" },
+                { text: "Mencari solusi praktis atau tindakan nyata untuk menyelesaikan masalahnya", type: "Koleris" },
+                { text: "Berempati sangat mendalam dan memikirkan dampaknya bagi perasaan dia", type: "Melankolis" },
+                { text: "Ikut merasa sedih secara emosional dan langsung berusaha menghiburnya", type: "Sanguinis" }
+            ] 
+        },
+        { 
+            q: "Dalam lingkungan kerja atau organisasi, saya paling tidak tahan dengan...", 
+            opts: [
+                { text: "Rekan kerja yang lamban, malas, dan tidak memiliki ambisi untuk maju", type: "Koleris" },
+                { text: "Aturan yang terlalu kaku, monoton, dan suasana yang membosankan", type: "Sanguinis" },
+                { text: "Hasil kerja yang berantakan, tidak akurat, dan tidak terstruktur", type: "Melankolis" },
+                { text: "Suasana kerja yang penuh drama politik, ketegangan, dan pertengkaran", type: "Flegmatis" }
+            ] 
+        },
+        { 
+            q: "Bagaimana cara Anda menghabiskan waktu luang?", 
+            opts: [
+                { text: "Berkumpul bersama teman-teman, nongkrong, atau bepergian ke tempat baru", type: "Sanguinis" },
+                { text: "Membaca buku, menulis jurnal, mendengarkan musik, atau menikmati kesendirian", type: "Melankolis" },
+                { text: "Melakukan aktivitas atau hobi yang produktif dan menghasilkan sesuatu", type: "Koleris" },
+                { text: "Tidur, menonton film favorit, atau sekadar rebahan santai di rumah", type: "Flegmatis" }
+            ] 
+        },
+        { 
+            q: "Ketika dipaksa mengambil keputusan mendesak yang berisiko tinggi, saya...", 
+            opts: [
+                { text: "Mengambil keputusan dengan sangat cepat dan berani menanggung segala akibatnya", type: "Koleris" },
+                { text: "Mengandalkan intuisi spontan atau firasat/perasaan saya saat itu juga", type: "Sanguinis" },
+                { text: "Ragu-ragu dan menundanya karena takut salah langkah atau datanya kurang", type: "Melankolis" },
+                { text: "Cenderung meminta pendapat orang lain terlebih dahulu agar aman", type: "Flegmatis" }
+            ] 
+        },
+        { 
+            q: "Secara umum, orang luar sering melabeli saya sebagai orang yang...", 
+            opts: [
+                { text: "Ramah, menyenangkan, dan komunikatif", type: "Sanguinis" },
+                { text: "Bijaksana, analitis, dan setia", type: "Melankolis" },
+                { text: "Kuat, tegas, dan berpendirian teguh", type: "Koleris" },
+                { text: "Tenang, sabar, dan mudah sepakat", type: "Flegmatis" }
+            ] 
+        },
+        { 
+            q: "Bagaimana perhatian Anda terhadap detail kecil dalam sebuah tugas?", 
+            opts: [
+                { text: "Mengabaikan detail kecil selama sistem utamanya berjalan dengan lancar", type: "Flegmatis" },
+                { text: "Hanya memedulikan detail yang krusial untuk mencapai target utama", type: "Koleris" },
+                { text: "Sangat terpaku pada kesempurnaan detail kecil sampai terkadang membuat stres", type: "Melankolis" },
+                { text: "Sering melewatkan detail karena terlalu fokus pada gambaran besar yang seru", type: "Sanguinis" }
+            ] 
+        },
+        { 
+            q: "Saat sedang berdiskusi, rapat, atau berargumen, sikap saya adalah...", 
+            opts: [
+                { text: "Berbicara dengan penuh emosi, ekspresif, dan bersemangat", type: "Sanguinis" },
+                { text: "Menyajikan argumen yang sangat logis, runtut, dilengkapi data/fakta", type: "Melankolis" },
+                { text: "Tegas dan dominan dalam mempertahankan pendapat agar disetujui", type: "Koleris" },
+                { text: "Lebih banyak mengamati, mendengar, dan setuju demi menghindari perdebatan", type: "Flegmatis" }
+            ] 
+        },
+        { 
+            q: "Pola istirahat atau jam tidur Anda biasanya...", 
+            opts: [
+                { text: "Sering begadang karena keasyikan mengobrol, menonton, atau main game", type: "Sanguinis" },
+                { text: "Sering sulit tidur karena otak terus mengevaluasi kejadian sepanjang hari", type: "Melankolis" },
+                { text: "Tidur sebentar tidak masalah bagi saya, asalkan target hari itu beres", type: "Koleris" },
+                { text: "Sangat menikmati tidur dan bisa tertidur dengan mudah kapan saja", type: "Flegmatis" }
+            ] 
+        },
+        { 
+            q: "Dalam urusan menepati janji temu (pertemuan), saya cenderung...", 
+            opts: [
+                { text: "Sangat disiplin waktu dan merasa bersalah jika terlambat meski satu menit", type: "Melankolis" },
+                { text: "Sering terlambat beberapa menit karena salah memperkirakan waktu persiapan", type: "Sanguinis" },
+                { text: "Selalu tepat waktu dan merasa kesal jika orang lain datang terlambat", type: "Koleris" },
+                { text: "Fleksibel; jika terlambat sedikit menurut saya itu hal yang lumrah", type: "Flegmatis" }
+            ] 
+        },
+        { 
+            q: "Bagaimana prinsip Anda dalam mengelola keuangan pribadi?", 
+            opts: [
+                { text: "Cukup hemat karena jarang memiliki keinginan belanja yang mendadak", type: "Flegmatis" },
+                { text: "Menginvestasikannya kembali untuk memutar modal atau aset masa depan", type: "Koleris" },
+                { text: "Mencatat setiap pengeluaran dan pemasukan secara mendetail dan rapi", type: "Melankolis" },
+                { text: "Boros untuk pengalaman seru, makanan enak, atau barang yang estetik", type: "Sanguinis" }
+            ] 
+        },
+        { 
+            q: "Saat memulai proyek baru, bagian mana yang paling memicu gairah Anda?", 
+            opts: [
+                { text: "Proses merancang sistem, metodologi kerja, dan cetak biru yang rapi", type: "Melankolis" },
+                { text: "Tantangan besar untuk menaklukkan dan menyelesaikan proyek tersebut", type: "Koleris" },
+                { text: "Euforia, atmosfer baru, dan obrolan seru di awal perencanaan", type: "Sanguinis" },
+                { text: "Tugas operasional yang jelas, stabil, aman, dan tidak banyak kejutan", type: "Flegmatis" }
+            ] 
+        },
+        { 
+            q: "Ketika orang lain melakukan kesalahan operasional, sikap Anda...", 
+            opts: [
+                { text: "Sangat mudah memaafkan dan langsung menganggapnya angin lalu", type: "Sanguinis" },
+                { text: "Menegurnya secara langsung saat itu juga dan menuntut perbaikan segera", type: "Koleris" },
+                { text: "Memaklumi sepenuhnya karena sadar setiap manusia pasti pernah salah", type: "Flegmatis" },
+                { text: "Sulit melupakan kesalahan tersebut dan menurunkan tingkat kepercayaan saya", type: "Melankolis" }
+            ] 
+        }
+    ];
+
+    let currentQuestion = 0;
+    const scores = { Sanguinis: 0, Koleris: 0, Melankolis: 0, Flegmatis: 0 };
+    let radarChartInstance = null; // Menyimpan instansi grafik radar agar bisa di-reset dengan bersih
+
+    // STREAMING_CHUNK:Implementing Fisher-Yates array shuffling logic...
+    function shuffleArray(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    // STREAMING_CHUNK:Building quiz cards with dynamic option labeling...
+    function initQuiz() {
+        const container = document.getElementById('questions-container');
+        container.innerHTML = ''; // Mengosongkan wadah sebelum membuat ulang kartu soal
+        
+        questions.forEach((q, index) => {
+            let optionsHTML = '';
+            
+            // Mengacak opsi agar urutan Sanguinis, Koleris, Melankolis, Flegmatis tidak melulu A, B, C, D
+            const shuffledOptions = shuffleArray(q.opts);
+            
+            // Beri label A, B, C, D SETELAH diacak
+            shuffledOptions.forEach((opt, optIndex) => {
+                const label = String.fromCharCode(65 + optIndex); // Menghasilkan huruf A, B, C, atau D
+                optionsHTML += `
+                    <button class="option-btn" onclick="selectOption('${opt.type}')">
+                        <strong>${label}.</strong> ${opt.text}
+                    </button>`;
+            });
+
+            const card = document.createElement('div');
+            card.className = `question-card ${index === 0 ? 'active' : ''}`;
+            card.id = `q-${index}`;
+            card.innerHTML = `
+                <div class="question-text">Soal ${index + 1} dari 24: <br><br> ${q.q}</div>
+                <div class="options">${optionsHTML}</div>
+            `;
+            container.appendChild(card);
+        });
+        updateProgress();
+    }
+
+    // STREAMING_CHUNK:Handling user option selection and transitioning questions...
+    function selectOption(type) {
+        scores[type]++;
+        document.getElementById(`q-${currentQuestion}`).classList.remove('active');
+        currentQuestion++;
+
+        if (currentQuestion < questions.length) {
+            document.getElementById(`q-${currentQuestion}`).classList.add('active');
+            updateProgress();
+        } else {
+            showResults();
+        }
+    }
+
+    function updateProgress() {
+        const percent = (currentQuestion / questions.length) * 100;
+        document.getElementById('progress').style.width = `${percent}%`;
+    }
+
+    // STREAMING_CHUNK:Processing scoring metrics and drawing radar charts...
+    function showResults() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+
+        // Hitung Persentase & Cari Skor Tertinggi
+        const labels = Object.keys(scores);
+        const dataValues = labels.map(type => Math.round((scores[type] / 24) * 100));
+        
+        let highestScore = -1;
+        let primaryTemperament = '';
+        
+        labels.forEach(type => {
+            if (scores[type] > highestScore) {
+                highestScore = scores[type];
+                primaryTemperament = type.toLowerCase();
+            }
+        });
+
+        // Sembunyikan semua detail penjelasan terlebih dahulu (agar bersih saat reset)
+        document.querySelectorAll('.temperament-section').forEach(el => el.style.display = 'none');
+        
+        // Munculkan hanya bagian teks detail temperamen tertinggi responden
+        document.getElementById(`info-${primaryTemperament}`).style.display = 'block';
+
+        // RENDER RADAR CHART
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        
+        // Hancurkan grafik lama jika sebelumnya sudah pernah dibuat (mencegah error Chart.js)
+        if (radarChartInstance) {
+            radarChartInstance.destroy();
+        }
+
+        radarChartInstance = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Persentase Karakter (%)',
+                    data: dataValues,
+                    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { display: true },
+                        suggestedMin: 0,
+                        suggestedMax: 100,
+                        ticks: { stepSize: 20, display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    // STREAMING_CHUNK:Resetting state and rebuilding quiz container...
+    function resetQuiz() {
+        // Kembalikan semua skor ke 0
+        for (const type in scores) {
+            scores[type] = 0;
+        }
+        currentQuestion = 0;
+
+        // Tampilkan layar kuis, sembunyikan layar hasil
+        document.getElementById('result-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+
+        // Bangun ulang struktur kartu pertanyaan dari awal
+        initQuiz();
+    }
+
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>
